@@ -1,0 +1,6 @@
+package: csn-api
+import:
+- package: github.com/PuerkitoBio/goquery
+  version: ^1.4.0
+- package: github.com/gin-gonic/gin
+  version: ^1.2.0
