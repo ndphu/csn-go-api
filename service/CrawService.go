@@ -33,7 +33,6 @@ func (s *CrawService) CrawSources(trackUrl string) ([]model.Source, error)  {
 	if err != nil {
 		return nil, err
 	}
-
 	var sources []model.Source
 	doc.Find("#downloadlink2 a").Each(func(__ int, link *goquery.Selection) {
 		if link.Find("span").Length() > 0 {
@@ -44,8 +43,6 @@ func (s *CrawService) CrawSources(trackUrl string) ([]model.Source, error)  {
 			sources = append(sources, source)
 		}
 	})
-
-
 	return sources, nil
 }
 
@@ -84,11 +81,10 @@ func (s *CrawService) CrawTracksFromUrl(raw string) ([]model.Track, error) {
 			}
 		})
 
-		if track.Quality != "Lossless" {
+		tracks = append(tracks, track)
+		if idx >= 25 {
 			return false
 		}
-
-		tracks = append(tracks, track)
 		return true
 	})
 

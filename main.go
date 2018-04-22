@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"csn-api/service"
 	"csn-api/model"
@@ -15,6 +16,14 @@ type CrawSourceRequest struct {
 
 func main() {
 	r := gin.Default()
+
+	c := cors.DefaultConfig()
+	c.AllowAllOrigins = true
+	c.AllowCredentials = true
+	c.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE"}
+	c.AllowHeaders = []string{"Origin", "Authorization", "Content-Type", "Content-Length", "X-Requested-With"}
+
+	r.Use(cors.New(c))
 
 	crawService := service.CrawService{}
 
@@ -37,7 +46,7 @@ func main() {
 
 	source := api.Group("/source")
 	{
-		source.POST("/", func(c *gin.Context) {
+		source.POST("", func(c *gin.Context) {
 			request := CrawSourceRequest{}
 			err := c.BindJSON(&request)
 			if err != nil {
@@ -56,10 +65,8 @@ func main() {
 						c.JSON(200, sources)
 					}
 				}
-
 			}
 		})
-
 	}
 
 	fmt.Println("Starting server")
