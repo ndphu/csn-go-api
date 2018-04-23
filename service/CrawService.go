@@ -3,10 +3,10 @@ package service
 import (
 	"fmt"
 	"net/url"
-	"csn-api/model"
+	"github.com/ndphu/csn-go-api/model"
 	"github.com/PuerkitoBio/goquery"
 	"strings"
-	"csn-api/utils"
+	"github.com/ndphu/csn-go-api/utils"
 )
 
 var (

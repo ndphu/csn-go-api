@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"csn-api/service"
-	"csn-api/model"
-	"csn-api/utils"
+	"github.com/ndphu/csn-go-api/service"
+	"github.com/ndphu/csn-go-api/model"
+	"github.com/ndphu/csn-go-api/utils"
 	"encoding/base64"
 )
 
@@ -31,16 +31,20 @@ func main() {
 	search := api.Group("/search")
 	{
 		search.GET("/q/:query", func(c *gin.Context) {
-			query := c.Param("query")
+			query, err := base64.StdEncoding.DecodeString(c.Param("query"))
 			page := utils.GetIntQuery(c, "page", 1)
-			tracks, err := crawService.Search(query, page)
+			tracks, err := crawService.Search(string(query), page)
 			returnTracksOrError(c, tracks, err)
 		})
 		search.GET("/byArtist/:artistName/tracks", func(c *gin.Context) {
-			name := c.Param("artistName")
-			page := utils.GetIntQuery(c, "page", 1)
-			tracks, err := crawService.CrawByArtist(name, page)
-			returnTracksOrError(c, tracks, err)
+			name, err := base64.StdEncoding.DecodeString(c.Param("artistName"))
+			if err != nil {
+				c.JSON(500, gin.H{"err": err})
+			} else {
+				page := utils.GetIntQuery(c, "page", 1)
+				tracks, err := crawService.CrawByArtist(string(name), page)
+				returnTracksOrError(c, tracks, err)
+			}
 		})
 	}
 
