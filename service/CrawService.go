@@ -2,33 +2,33 @@ package service
 
 import (
 	"fmt"
-	"net/url"
-	"github.com/ndphu/csn-go-api/model"
 	"github.com/PuerkitoBio/goquery"
-	"strings"
+	"github.com/ndphu/csn-go-api/model"
 	"github.com/ndphu/csn-go-api/utils"
+	"strings"
 )
 
 var (
-	SearchUrl         = "http://search2.chiasenhac.vn/search.php"
+	SearchUrl         = "http://chiasenhac.vn/search.php"
 	SearchByArtist    = SearchUrl + "?mode=artist&s=%s&order=quality&cat=music&page=%d"
 	SearchByTrackName = SearchUrl + "?mode=&s=%s&order=quality&cat=music&page=%d"
 )
 
 type CrawService struct{}
 
-func (s *CrawService) CrawByArtist(a string, p int) ([]model.Track, error) {
-	raw := fmt.Sprintf(SearchByArtist, url.QueryEscape(a), p)
-	return s.CrawTracksFromUrl(raw)
+var crawService *CrawService
+
+func GetCrawService() *CrawService {
+	if crawService == nil {
+		crawService = &CrawService{}
+	}
+
+	return crawService
 }
 
-func (s *CrawService) Search(name string, p int) ([]model.Track, error) {
-	raw := fmt.Sprintf(SearchByTrackName, url.QueryEscape(name), p);
-	return s.CrawTracksFromUrl(raw)
-}
-
-func (s *CrawService) CrawSources(trackUrl string) ([]model.Source, error)  {
+func (s *CrawService) crawSources(trackUrl string) ([]model.Source, error)  {
 	downloadUrl := strings.Replace(trackUrl, ".html", "_download.html", 1)
+	fmt.Println("download url:", downloadUrl)
 	doc, err := goquery.NewDocument(downloadUrl)
 	if err != nil {
 		return nil, err
@@ -40,13 +40,14 @@ func (s *CrawService) CrawSources(trackUrl string) ([]model.Source, error)  {
 				Source:  link.AttrOr("href", ""),
 				Quality: link.Find("span").First().Text(),
 			}
+			fmt.Println("found source:", source.Quality)
 			sources = append(sources, source)
 		}
 	})
 	return sources, nil
 }
 
-func (s *CrawService) CrawTracksFromUrl(raw string) ([]model.Track, error) {
+func (s *CrawService) crawTracksFromUrl(raw string) ([]model.Track, error) {
 	fmt.Println("Querying " + raw)
 	doc, err := goquery.NewDocument(raw)
 	if err != nil {

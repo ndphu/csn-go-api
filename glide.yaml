@@ -1,4 +1,4 @@
-package: csn-api
+package: csn-api-1
 import:
 - package: github.com/PuerkitoBio/goquery
   version: ^1.4.0

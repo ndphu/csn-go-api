@@ -1,8 +1,8 @@
 ---
 applications:
-- name: csn-go-api
-  memory: 32M
-  instances: 4
-  command: csn-api
+- name: csn-go-api-1
+  memory: 24M
+  instances: 1
+  command: csn-api-1
   random-route: true
 
