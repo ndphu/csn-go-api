@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"net/url"
 	"os"
 	"strings"
@@ -27,7 +28,13 @@ var conf *Config
 func init() {
 	conf = &Config{}
 	conf.MongoDBUri = os.Getenv("MONGODB_URI")
-	conf.DBName = getDBName(conf.MongoDBUri)
+
+	if os.Getenv("MONGODB_DB_NAME") == "" {
+		conf.DBName = getDBName(conf.MongoDBUri)
+	} else {
+		conf.DBName = os.Getenv("MONGODB_DB_NAME")
+		fmt.Println("using database", conf.DBName)
+	}
 
 	conf.GinDebug = os.Getenv("GIN_DEBUG") == "true"
 }

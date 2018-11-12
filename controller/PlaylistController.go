@@ -12,12 +12,15 @@ func PlaylistController(r *gin.RouterGroup) {
 	playlistService := service.GetPlaylistService()
 	r.GET("", func(c *gin.Context) {
 		page, e := strconv.Atoi(c.Query("page"))
+		if e != nil || page < 1{
+			page = 1
+		}
+		size, e := strconv.Atoi(c.Query("size"))
 		if e != nil {
-			c.Error(e)
-			return
+			size = 24
 		}
 
-		playlist, e := playlistService.FindAllPlaylist(page)
+		playlist, e := playlistService.FindAllPlaylist(page, size)
 		if e != nil {
 			c.Error(e)
 			return
@@ -31,6 +34,18 @@ func PlaylistController(r *gin.RouterGroup) {
 
 	r.POST("", func(c *gin.Context) {
 		// new playlist
-		fmt.Print("creating new playlist...")
+		fmt.Println("creating new playlist...")
+		playlist := entity.Playlist{}
+		err := c.BindJSON(&playlist)
+		if err != nil {
+			c.JSON(400, "Bad request: "+err.Error())
+		} else {
+			err = playlistService.CreatePlaylist(&playlist)
+			if err != nil {
+				c.JSON(500, err.Error())
+			} else {
+				c.JSON(201, playlist)
+			}
+		}
 	})
 }

@@ -1,6 +1,8 @@
 package service
 
 import (
+	"fmt"
+	"github.com/globalsign/mgo/bson"
 	"github.com/ndphu/csn-go-api/dao"
 	"github.com/ndphu/csn-go-api/entity"
 )
@@ -18,6 +20,11 @@ func GetPlaylistService() *PlaylistService  {
 	return playlistService
 }
 
-func (*PlaylistService) FindAllPlaylist(page int) ([]entity.Playlist, error) {
-	return dao.GetAllPlaylist(page)
+func (*PlaylistService) FindAllPlaylist(page int, size int) ([]entity.Playlist, error) {
+	return dao.GetAllPlaylist(page, size)
+}
+func (service *PlaylistService) CreatePlaylist(playlist *entity.Playlist) (error) {
+	fmt.Println("creating playlist", playlist.Title, "with track count =", len(playlist.Tracks))
+	playlist.Id = bson.NewObjectId()
+	return dao.SavePlaylist(playlist)
 }
