@@ -19,3 +19,9 @@ func SavePlaylist(playlist *entity.Playlist) (error) {
 	}
 	return err
 }
+
+func FindPlaylistById(id bson.ObjectId) (*entity.Playlist, error) {
+	var p entity.Playlist
+	err := Collection("playlist").FindId(id).One(&p)
+	return &p, err
+}

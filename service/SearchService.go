@@ -32,3 +32,8 @@ func (s *SearchService) SearchByArtist(a string, p int) ([]model.Track, error) {
 	raw := fmt.Sprintf(SearchByArtist, url.QueryEscape(a), p)
 	return s.crawService.crawTracksFromUrl(raw)
 }
+
+func (s *SearchService) SearchByAlbum(a string, p int) ([]model.Track, error) {
+	raw := fmt.Sprintf(SearchByArtist, url.QueryEscape(a), p)
+	return s.crawService.crawTracksFromUrl(raw)
+}

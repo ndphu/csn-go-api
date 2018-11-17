@@ -29,4 +29,15 @@ func SearchController(api *gin.RouterGroup) {
 		}
 	})
 
+	api.GET("/byAlum/:albumName/tracks", func(c *gin.Context) {
+		name, err := base64.StdEncoding.DecodeString(c.Param("albumName"))
+		if err != nil {
+			c.JSON(500, gin.H{"err": err})
+		} else {
+			page := utils.GetIntQuery(c, "page", 1)
+			tracks, err := searchService.SearchByArtist(string(name), page)
+			utils.ReturnTracksOrError(c, tracks, err)
+		}
+	})
+
 }

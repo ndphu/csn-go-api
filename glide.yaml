@@ -1,4 +1,4 @@
-package: csn-api-1
+package: csn-api-beta
 import:
 - package: github.com/PuerkitoBio/goquery
   version: ^1.4.0
@@ -6,3 +6,5 @@ import:
   version: ^1.2.0
 - package: github.com/gin-contrib/cors
   version: ^1.1
+- package: github.com/ndphu/csn-go-api
+  version: support-playlist

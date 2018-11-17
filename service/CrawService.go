@@ -11,6 +11,7 @@ import (
 var (
 	SearchUrl         = "http://chiasenhac.vn/search.php"
 	SearchByArtist    = SearchUrl + "?mode=artist&s=%s&order=quality&cat=music&page=%d"
+	SearchByAlbum    = SearchUrl + "?mode=album&s=%s&order=quality&cat=music&page=%d"
 	SearchByTrackName = SearchUrl + "?mode=&s=%s&order=quality&cat=music&page=%d"
 )
 

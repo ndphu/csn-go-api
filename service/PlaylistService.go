@@ -28,3 +28,6 @@ func (service *PlaylistService) CreatePlaylist(playlist *entity.Playlist) (error
 	playlist.Id = bson.NewObjectId()
 	return dao.SavePlaylist(playlist)
 }
+func (service *PlaylistService) FindPlaylistById(id string) (*entity.Playlist, error) {
+	return dao.FindPlaylistById(bson.ObjectIdHex(id))
+}

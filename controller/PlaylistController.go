@@ -48,4 +48,14 @@ func PlaylistController(r *gin.RouterGroup) {
 			}
 		}
 	})
+
+	r.GET("/:id", func(c *gin.Context) {
+		fmt.Println("get playlist", c.Param("id"))
+		playlist, err := playlistService.FindPlaylistById(c.Param("id"))
+		if err != nil {
+			c.JSON(500, err.Error())
+		} else {
+			c.JSON(201, playlist)
+		}
+	})
 }
