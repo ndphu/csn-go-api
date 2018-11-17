@@ -1,6 +1,6 @@
 ---
 applications:
-- name: csn-go-api-beta
+- name: csn-api-beta
   memory: 24M
   instances: 1
   command: csn-api-beta
