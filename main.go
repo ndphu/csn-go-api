@@ -27,6 +27,7 @@ func main() {
 	controller.SearchController(api.Group("/search"))
 	controller.SourceController(api.Group("/source"))
 	controller.PlaylistController(api.Group("/playlist"))
+	controller.AccountController(api.Group("/manage/driveAccount"))
 
 	fmt.Println("Starting server")
 	r.Run()

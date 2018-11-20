@@ -3,6 +3,7 @@ package utils
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/ndphu/csn-go-api/model"
+	"log"
 	"strconv"
 	"strings"
 )
@@ -28,4 +29,10 @@ func GetIntQuery(c *gin.Context, key string, defaultValue int) int {
 		return page
 	}
 	return defaultValue
+}
+
+func FailOnError(err error, msg string) {
+	if err != nil {
+		log.Fatalf("%s: %v", msg, err)
+	}
 }
