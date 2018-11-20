@@ -34,14 +34,9 @@ func (s *AccountService) FindAccount(id string) (*entity.DriveAccount, error) {
 	return &acc, err
 }
 
-func (s *AccountService) InitializeKey(id string, key []byte) (error) {
-	var acc entity.DriveAccount
-	err := dao.Collection("drive_account").FindId(bson.ObjectIdHex(id)).One(&acc)
-	if err != nil {
-		return err
-	}
+func (s *AccountService) InitializeKey(acc*entity.DriveAccount, key []byte) (error) {
 	var kd KeyDetails
-	err = json.Unmarshal(key, &kd)
+	err := json.Unmarshal(key, &kd)
 	if err != nil {
 		return err
 	}
@@ -51,6 +46,19 @@ func (s *AccountService) InitializeKey(id string, key []byte) (error) {
 	acc.ProjectId = kd.ProjectId
 	acc.Type = kd.Type
 
+	return nil
+}
+
+func (s*AccountService) UpdateKey(id string, key []byte) (error)  {
+	var acc entity.DriveAccount
+	err := dao.Collection("drive_account").FindId(bson.ObjectIdHex(id)).One(&acc)
+	if err != nil {
+		return err
+	}
+	err=s.InitializeKey(&acc, key)
+	if err != nil {
+		return err
+	}
 	return dao.Collection("drive_account").UpdateId(bson.ObjectIdHex(id), &acc)
 }
 

@@ -3,7 +3,6 @@ package controller
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"log"
 )
 
 func BadRequest(msg string, err error, c*gin.Context)  {
@@ -12,7 +11,7 @@ func BadRequest(msg string, err error, c*gin.Context)  {
 		"err": fmt.Sprintf("%v", err),
 		"msg": msg,
 	})
-	log.Fatalf("Bad Request: %s %v", msg, err)
+	//log.Fatalf("Bad Request: %s %v", msg, err)
 }
 
 func ServerError(msg string, err error, c*gin.Context)  {
@@ -21,5 +20,5 @@ func ServerError(msg string, err error, c*gin.Context)  {
 		"err": fmt.Sprintf("%v", err),
 		"msg": msg,
 	})
-	log.Fatalf("Internal Server Error: %s %v", msg, err)
+	//log.Fatalf("Internal Server Error: %s %v", msg, err)
 }
