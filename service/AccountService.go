@@ -2,28 +2,27 @@ package service
 
 import (
 	"encoding/json"
-	bson2 "github.com/globalsign/mgo/bson"
+	"github.com/globalsign/mgo/bson"
 	"github.com/ndphu/csn-go-api/dao"
 	"github.com/ndphu/csn-go-api/entity"
-	"gopkg.in/mgo.v2/bson"
 )
 
 type AccountService struct {
-
 }
 
 type KeyDetails struct {
-	Type string `json:"type"`
-	ProjectId string `json:"project_id"`
+	Type        string `json:"type"`
+	ProjectId   string `json:"project_id"`
 	ClientEmail string `json:"client_email"`
-	ClientId string `json:"client_id"`
+	ClientId    string `json:"client_id"`
 }
 
 func (s *AccountService) Save(account *entity.DriveAccount) error {
+	account.Id = bson.NewObjectId();
 	return dao.Collection("drive_account").Insert(account)
 }
 
-func (s *AccountService) FindAll() ( []entity.DriveAccount,  error) {
+func (s *AccountService) FindAll() ([]entity.DriveAccount, error) {
 	var list []entity.DriveAccount
 	err := dao.Collection("drive_account").Find(bson.M{}).All(&list)
 	return list, err
@@ -35,9 +34,9 @@ func (s *AccountService) FindAccount(id string) (*entity.DriveAccount, error) {
 	return &acc, err
 }
 
-func (s *AccountService) InitializeKey(id string, key []byte) (error)  {
+func (s *AccountService) InitializeKey(id string, key []byte) (error) {
 	var acc entity.DriveAccount
-	err := dao.Collection("drive_account").FindId(bson2.ObjectIdHex(id)).One(&acc)
+	err := dao.Collection("drive_account").FindId(bson.ObjectIdHex(id)).One(&acc)
 	if err != nil {
 		return err
 	}
@@ -57,7 +56,7 @@ func (s *AccountService) InitializeKey(id string, key []byte) (error)  {
 
 var accountService *AccountService
 
-func GetAccountService() *AccountService  {
+func GetAccountService() *AccountService {
 	if accountService == nil {
 		accountService = &AccountService{}
 	}

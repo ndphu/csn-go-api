@@ -10,7 +10,7 @@ import (
 func AccountController(r *gin.RouterGroup) {
 	accountService := service.GetAccountService()
 
-	r.POST("/", func(c *gin.Context) {
+	r.POST("", func(c *gin.Context) {
 		da := entity.DriveAccount{}
 		err := c.BindJSON(&da)
 		if err != nil {
@@ -20,12 +20,16 @@ func AccountController(r *gin.RouterGroup) {
 		if err != nil {
 			ServerError("Fail to save drive account", err, c)
 		}
+		c.JSON(200, da)
 	})
 
-	r.GET("/", func(c *gin.Context) {
+	r.GET("", func(c *gin.Context) {
 		accList, err := accountService.FindAll()
 		if err != nil {
 			ServerError("Fail to get account list", err, c)
+		}
+		if accList == nil {
+			accList = []entity.DriveAccount{}
 		}
 		c.JSON(200, accList)
 	})
@@ -35,9 +39,8 @@ func AccountController(r *gin.RouterGroup) {
 		if err != nil {
 			BadRequest("Request required body as base64",err,c)
 		}
-		var keyDecoded []byte
-		count ,err := base64.StdEncoding.Decode(keyDecoded, body)
-		if err != nil || count == 0{
+		keyDecoded ,err := base64.StdEncoding.DecodeString(string(body))
+		if err != nil {
 			BadRequest("Fail to decode base64 key data", err, c)
 		}
 		err = accountService.InitializeKey(c.Param("id"), keyDecoded)
@@ -46,8 +49,9 @@ func AccountController(r *gin.RouterGroup) {
 		}
 
 		account, err := accountService.FindAccount(c.Param("id"))
-		ServerError("Fail to query account", err, c)
-
+		if err != nil {
+			ServerError("Fail to query account", err, c)
+		}
 		c.JSON(200, account)
 	})
 }
