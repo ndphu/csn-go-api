@@ -24,9 +24,11 @@ func main() {
 		c.JSON(200, gin.H{"status": "OK"})
 	})
 
+	controller.OnlineSearchController(api.Group("/search/online"))
 	controller.SearchController(api.Group("/search"))
 	controller.SourceController(api.Group("/source"))
 	controller.PlaylistController(api.Group("/playlist"))
+	controller.ArtistController(api.Group("/artist"))
 	controller.AccountController(api.Group("/manage/driveAccount"))
 
 	fmt.Println("Starting server")

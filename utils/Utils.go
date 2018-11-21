@@ -16,6 +16,14 @@ func ReturnTracksOrError(c *gin.Context, tracks []model.Track, err error) {
 	}
 }
 
+func ReturnResponseOrError(c *gin.Context, resp interface{}, err error) {
+	if err != nil {
+		c.JSON(500, gin.H{"err": err})
+	} else {
+		c.JSON(200, resp)
+	}
+}
+
 func GetSecondFromString(input string) int {
 	chunks := strings.Split(input, ":")
 	min, _ := strconv.Atoi(chunks[0])
