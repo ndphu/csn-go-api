@@ -52,7 +52,10 @@ func (*DBSearchService) SearchTracks(query string, page int, size int) ([]entity
 	var tracks []entity.Track
 	err := dao.Collection("track").
 		Find(bson.M{"title": bson.RegEx{Pattern: query, Options: "i"},}).
-		Skip((page - 1) * size).Limit(size).All(&tracks)
+		Select(bson.M{"link": 0}).
+		Skip((page - 1) * size).
+		Limit(size).
+		All(&tracks)
 	fmt.Println("found", len(tracks), "items")
 	return tracks, err
 }

@@ -24,7 +24,6 @@ func main() {
 		c.JSON(200, gin.H{"status": "OK"})
 	})
 
-	controller.OnlineSearchController(api.Group("/search/online"))
 	controller.SearchController(api.Group("/search"))
 	controller.SourceController(api.Group("/source"))
 	controller.PlaylistController(api.Group("/playlist"))

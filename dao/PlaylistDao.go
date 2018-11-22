@@ -23,5 +23,15 @@ func SavePlaylist(playlist *entity.Playlist) (error) {
 func FindPlaylistById(id bson.ObjectId) (*entity.Playlist, error) {
 	var p entity.Playlist
 	err := Collection("playlist").FindId(id).One(&p)
+
+	tracks := make([]entity.Track, 0)
+	err = Collection("track").Find(bson.M{"_id": bson.M{
+		"$in": p.Tracks,
+	}}).Select(bson.M{"link": 0}).
+		All(&tracks)
+	if err != nil {
+		return nil, err
+	}
+	p.TrackList = tracks
 	return &p, err
 }

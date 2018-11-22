@@ -33,7 +33,6 @@ func PlaylistController(r *gin.RouterGroup) {
 	})
 
 	r.POST("", func(c *gin.Context) {
-		// new playlist
 		fmt.Println("creating new playlist...")
 		playlist := entity.Playlist{}
 		err := c.BindJSON(&playlist)
@@ -55,7 +54,7 @@ func PlaylistController(r *gin.RouterGroup) {
 		if err != nil {
 			c.JSON(500, err.Error())
 		} else {
-			c.JSON(201, playlist)
+			c.JSON(200, playlist)
 		}
 	})
 }

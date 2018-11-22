@@ -13,7 +13,6 @@ func SaveTrackModel(m *model.Track) (*entity.Track, error) {
 		Artist: m.Artist,
 		Duration: m.Duration,
 		Id: bson.NewObjectId(),
-		Link: m.Link,
 	}
 	err := Collection("track").Insert(&e)
 	return &e, err
