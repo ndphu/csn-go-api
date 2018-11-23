@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/ndphu/csn-go-api/entity"
 	"github.com/ndphu/csn-go-api/service"
 	"github.com/ndphu/csn-go-api/utils"
 )
@@ -43,6 +44,9 @@ func SearchController(api *gin.RouterGroup) {
 		page := utils.GetIntQuery(c, "page", 1)
 		size := utils.GetIntQuery(c, "size", 25)
 		tracks, err := searchService.SearchTracksByArtist(string(query), page, size)
+		if tracks == nil {
+			tracks = make([]entity.Track, 0)
+		}
 		utils.ReturnResponseOrError(c, tracks, err)
 	})
 

@@ -9,5 +9,5 @@ type Track struct {
 	Link     string        `json:"link" bson:"link"`
 	Quality  string        `json:"quality" bson:"quality"`
 	Duration int           `json:"duration" bson:"duration"`
-	Files    []DriveFile   `json:"files" bson:"files"`
+	Imported bool          `json:"imported" bson:"imported"`
 }

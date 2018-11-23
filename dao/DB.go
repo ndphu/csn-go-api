@@ -53,3 +53,7 @@ func init()  {
 func Collection(name string) *mgo.Collection {
 	return dao.Session.DB(dao.DBName).C(name)
 }
+
+func GetSession() *mgo.Session {
+	return dao.Session
+}
