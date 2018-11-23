@@ -19,6 +19,9 @@ func SearchController(api *gin.RouterGroup) {
 		page := utils.GetIntQuery(c, "page", 1)
 		size := utils.GetIntQuery(c, "size", 25)
 		tracks, err := searchService.SearchTracks(string(query), page, size)
+		if tracks == nil {
+			tracks = make([]entity.Track, 0)
+		}
 		utils.ReturnResponseOrError(c, tracks, err)
 	})
 
@@ -26,6 +29,9 @@ func SearchController(api *gin.RouterGroup) {
 		query, err := base64.StdEncoding.DecodeString(c.Param("query"))
 		fmt.Println("quick search", string(query))
 		entries, err := searchService.QuickSearch(string(query))
+		if entries == nil {
+			entries = make([]service.QuickSearchEntry, 0)
+		}
 		utils.ReturnResponseOrError(c, entries, err)
 	})
 
@@ -35,6 +41,9 @@ func SearchController(api *gin.RouterGroup) {
 		page := utils.GetIntQuery(c, "page", 1)
 		size := utils.GetIntQuery(c, "size", 25)
 		artists, err := searchService.SearchArtist(string(query), page, size)
+		if artists == nil {
+			artists = make([]entity.Artist, 0)
+		}
 		utils.ReturnResponseOrError(c, artists, err)
 	})
 
