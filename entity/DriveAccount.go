@@ -12,5 +12,7 @@ type DriveAccount struct {
 	ClientEmail string `json:"clientEmail" bson:"clientEmail"`
 	ClientId string `json:"clientId" bson:"clientId"`
 	Key string `json:"key" bson:"key"`
+	Usage int64 `json:"usage" bson:"usage"`
+	Limit int64 `json:"limit" bson:"limit"`
 }
 

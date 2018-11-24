@@ -29,6 +29,8 @@ func main() {
 	controller.PlaylistController(api.Group("/playlist"))
 	controller.ArtistController(api.Group("/artist"))
 	controller.AccountController(api.Group("/manage/driveAccount"))
+	controller.TrackController(api.Group("/track"))
+	controller.DownloadController(api.Group("/download"))
 
 	fmt.Println("Starting server")
 	r.Run()

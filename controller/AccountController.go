@@ -2,11 +2,13 @@ package controller
 
 import (
 	"encoding/base64"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/ndphu/csn-go-api/entity"
 	"github.com/ndphu/csn-go-api/service"
 	helper "github.com/ndphu/google-api-helper"
 	"strconv"
+	"sync"
 )
 
 func AccountController(r *gin.RouterGroup) {
@@ -58,8 +60,23 @@ func AccountController(r *gin.RouterGroup) {
 			return
 		}
 		if accList == nil {
-			accList = []entity.DriveAccount{}
+			accList = []*entity.DriveAccount{}
 		}
+
+		wg := sync.WaitGroup{}
+		for _,acc := range accList {
+			acc.Key = ""
+			if acc.Limit == 0 {
+				wg.Add(1)
+				fmt.Println("refreshing quota for", acc.Name)
+				go func(_id string) {
+					accountService.UpdateCachedQuota(_id)
+					wg.Done()
+				}(acc.Id.Hex())
+			}
+		}
+		wg.Wait()
+
 		c.JSON(200, accList)
 	})
 
@@ -69,21 +86,12 @@ func AccountController(r *gin.RouterGroup) {
 			ServerError("Fail to get account", err, c)
 			return
 		}
-		driveService, err := helper.GetDriveService([]byte(acc.Key))
-		if err != nil {
-			ServerError("Fail to initialize drive service", err, c)
-			return
-		}
-		quota, err := driveService.GetQuotaUsage()
-		if err != nil {
-			ServerError("Fail to get quota for account", err, c)
-			return
-		}
 		c.JSON(200, gin.H{
 			"_id":   acc.Id,
 			"name":  acc.Name,
 			"desc":  acc.Desc,
-			"quota": quota,
+			"limit": acc.Limit,
+			"usage": acc.Usage,
 		})
 	})
 
@@ -159,4 +167,22 @@ func AccountController(r *gin.RouterGroup) {
 		}
 		c.JSON(200, gin.H{"link": link})
 	})
+
+	r.GET("/:id/refreshQuota", func(c *gin.Context) {
+		err := accountService.UpdateCachedQuota(c.Param("id"))
+		if err != nil {
+			ServerError("Fail to get account", err, c)
+			return
+		}
+
+		account, err := accountService.FindAccount(c.Param("id"))
+		if err != nil {
+			ServerError("Fail to get account", err, c)
+			return
+		}
+		account.Key = ""
+
+		c.JSON(200, account)
+	})
+
 }
