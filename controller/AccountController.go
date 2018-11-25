@@ -11,8 +11,11 @@ import (
 	"sync"
 )
 
-func AccountController(r *gin.RouterGroup) {
-	accountService := service.GetAccountService()
+func AccountController(r *gin.RouterGroup) error {
+	accountService, err := service.GetAccountService()
+	if err != nil {
+		return err
+	}
 
 	r.POST("", func(c *gin.Context) {
 		da := entity.DriveAccount{}
@@ -22,7 +25,7 @@ func AccountController(r *gin.RouterGroup) {
 			return
 		}
 
-		keyDecoded ,err := base64.StdEncoding.DecodeString(da.Key)
+		keyDecoded, err := base64.StdEncoding.DecodeString(da.Key)
 		if err != nil {
 			BadRequest("Fail to decode base64 key data", err, c)
 			return
@@ -64,7 +67,7 @@ func AccountController(r *gin.RouterGroup) {
 		}
 
 		wg := sync.WaitGroup{}
-		for _,acc := range accList {
+		for _, acc := range accList {
 			acc.Key = ""
 			if acc.Limit == 0 {
 				wg.Add(1)
@@ -96,12 +99,12 @@ func AccountController(r *gin.RouterGroup) {
 	})
 
 	r.POST("/:id/key", func(c *gin.Context) {
-		body, err:= c.GetRawData()
+		body, err := c.GetRawData()
 		if err != nil {
-			BadRequest("Request required body as base64",err,c)
+			BadRequest("Request required body as base64", err, c)
 			return
 		}
-		keyDecoded ,err := base64.StdEncoding.DecodeString(string(body))
+		keyDecoded, err := base64.StdEncoding.DecodeString(string(body))
 		if err != nil {
 			BadRequest("Fail to decode base64 key data", err, c)
 			return
@@ -121,12 +124,12 @@ func AccountController(r *gin.RouterGroup) {
 	})
 
 	r.GET("/:id/files", func(c *gin.Context) {
-		page,err := strconv.Atoi(c.Query("page"))
+		page, err := strconv.Atoi(c.Query("page"))
 		if err != nil {
 			BadRequest("Invalid page parameter", err, c)
 			return
 		}
-		size,err := strconv.Atoi(c.Query("size"))
+		size, err := strconv.Atoi(c.Query("size"))
 		if err != nil {
 			BadRequest("Invalid size parameter", err, c)
 			return
@@ -184,5 +187,5 @@ func AccountController(r *gin.RouterGroup) {
 
 		c.JSON(200, account)
 	})
-
+	return nil
 }

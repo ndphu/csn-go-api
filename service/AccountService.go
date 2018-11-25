@@ -2,14 +2,17 @@ package service
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/globalsign/mgo/bson"
 	"github.com/ndphu/csn-go-api/dao"
 	"github.com/ndphu/csn-go-api/entity"
-	"github.com/ndphu/google-api-helper"
+	driveApi "github.com/ndphu/google-api-helper"
+	"sync"
 	"time"
 )
 
 type AccountService struct {
+	accountCache map[string]*driveApi.DriveService
 }
 
 type KeyDetails struct {
@@ -64,14 +67,7 @@ func (s *AccountService) UpdateKey(id string, key []byte) (error) {
 	return dao.Collection("drive_account").UpdateId(bson.ObjectIdHex(id), &acc)
 }
 func (s *AccountService) UpdateCachedQuota(id string) error {
-	driveAccount, err := s.FindAccount(id)
-	if err != nil {
-		return err
-	}
-	driveService, err := google_api_helper.GetDriveService([]byte(driveAccount.Key))
-	if err != nil {
-		return err
-	}
+	driveService := s.accountCache[id]
 	quota, err := driveService.GetQuotaUsage()
 	if err != nil {
 		return err
@@ -94,43 +90,87 @@ type FileLookup struct {
 	Account []entity.DriveAccount `json:"account" bson:"account"`
 }
 
-func (s *AccountService) GetDownloadLink(fileId string) (string, error) {
-	fileLookup := FileLookup{}
-	err := dao.Collection("file").Pipe([]bson.M{
-		{
-			"$match": bson.M{
-				"_id": bson.ObjectIdHex(fileId),
-			},
-		},
-		{
-			"$lookup": bson.M{
-				"from":         "drive_account",
-				"localField":   "driveAccount",
-				"foreignField": "_id",
-				"as":           "account",
-			},
-		},
-	}).One(&fileLookup)
+func (s *AccountService) GetDownloadLinkByFileId(fileId string) (string, error) {
+	file := entity.DriveFile{}
+	err := dao.Collection("file").FindId(bson.ObjectIdHex(fileId)).One(&file)
 	if err != nil {
 		return "", err
 	}
-	driveService, err := google_api_helper.GetDriveService([]byte(fileLookup.Account[0].Key))
+	driveService := s.accountCache[file.DriveAccount.Hex()]
+	link, err := driveService.GetDownloadLink(file.DriveFileId)
 	if err != nil {
-		return "", err
-	}
-	link, err := driveService.GetDownloadLink(fileLookup.DriveId)
-	if err != nil {
+		fmt.Println("fail to get download link", err.Error())
 		return "", err
 	}
 	return link, nil
 }
+func (s *AccountService) GetDownloadLink(file *entity.DriveFile) (string, error) {
+	driveService := s.accountCache[file.DriveAccount.Hex()]
+	link, err := driveService.GetDownloadLink(file.DriveFileId)
+	if err != nil {
+		fmt.Println("fail to get download link", err.Error())
+		return "", err
+	}
+	return link, nil
+}
+func (s *AccountService) UpdateAllAccountQuota() error {
+	fmt.Println("Updating account quota...")
+	all, err := s.FindAll()
+	if err != nil {
+		fmt.Println("fail to query all account")
+	}
+	wg := sync.WaitGroup{}
+	for _, acc := range all {
+		wg.Add(1)
+		go func(id string, name string) {
+			err := s.UpdateCachedQuota(id)
+			if err != nil {
+				fmt.Println("fail to update quota for", id, name, "error", err.Error())
+			}
+			wg.Done()
+		}(acc.Id.Hex(), acc.Name)
+	}
+	wg.Wait()
+	fmt.Println("finished update account quota")
+	return nil
+}
 
 var accountService *AccountService
 
-func GetAccountService() *AccountService {
+func GetAccountService() (*AccountService, error) {
 	if accountService == nil {
-		accountService = &AccountService{}
-	}
+		accountService = &AccountService{
+			accountCache: make(map[string]*driveApi.DriveService, 0),
+		}
+		accountService.UpdateAccountCache()
+		ticker := time.NewTicker(5 * time.Second)
+		go func() {
+			for {
+				select {
+				case <-ticker.C:
+					accountService.UpdateAccountCache()
+					accountService.UpdateAllAccountQuota()
+					return
+				}
+			}
+		}()
 
-	return accountService
+	}
+	return accountService, nil
+}
+
+func (s *AccountService) UpdateAccountCache() error {
+	all, err := accountService.FindAll()
+	if err != nil {
+		return err
+	}
+	for _, acc := range all {
+		driveService, err := driveApi.GetDriveService([]byte(acc.Key))
+		if err != nil {
+			return err
+		}
+		accountService.accountCache[acc.Id.Hex()] = driveService
+	}
+	fmt.Println("cached", len(accountService.accountCache), "accounts")
+	return nil
 }

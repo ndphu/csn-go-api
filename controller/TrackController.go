@@ -7,9 +7,12 @@ import (
 	"sync"
 )
 
-func TrackController(g *gin.RouterGroup)  {
+func TrackController(g *gin.RouterGroup) error {
 	trackService := service.GetTrackService()
-	accountService := service.GetAccountService()
+	accountService, err := service.GetAccountService()
+	if err != nil {
+		return err
+	}
 	g.GET("/:id", func(c *gin.Context) {
 		track, err := trackService.GetTrackById(c.Param("id"))
 		if err != nil {
@@ -50,7 +53,7 @@ func TrackController(g *gin.RouterGroup)  {
 		for idx, file := range files {
 			wg.Add(1)
 			go func(index int, f *entity.DriveFile) {
-				link, _ := accountService.GetDownloadLink(file.Id.Hex())
+				link, _ := accountService.GetDownloadLink(f)
 				res[index] = Source{
 					Id: f.Id.Hex(),
 					FileName: f.Name,
@@ -65,4 +68,6 @@ func TrackController(g *gin.RouterGroup)  {
 
 		c.JSON(200, res)
 	})
+
+	return nil
 }

@@ -1,8 +1,8 @@
 ---
 applications:
-- name: csn-api-beta
+- name: csn-api-beta-2
   memory: 24M
   instances: 1
-  command: csn-api-beta
+  command: csn-api-beta-2
   random-route: true
 
