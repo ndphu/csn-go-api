@@ -2,13 +2,12 @@ package controller
 
 import (
 	"encoding/base64"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/ndphu/csn-go-api/entity"
 	"github.com/ndphu/csn-go-api/service"
+	"github.com/ndphu/csn-go-api/utils"
 	helper "github.com/ndphu/google-api-helper"
 	"strconv"
-	"sync"
 )
 
 func AccountController(r *gin.RouterGroup) error {
@@ -57,7 +56,9 @@ func AccountController(r *gin.RouterGroup) error {
 	})
 
 	r.GET("", func(c *gin.Context) {
-		accList, err := accountService.FindAll()
+		page := utils.GetIntQuery(c, "page", 1)
+		size := utils.GetIntQuery(c, "size", 10)
+		accList, err := accountService.FindAccounts(page, size)
 		if err != nil {
 			ServerError("Fail to get account list", err, c)
 			return
@@ -66,21 +67,12 @@ func AccountController(r *gin.RouterGroup) error {
 			accList = []*entity.DriveAccount{}
 		}
 
-		wg := sync.WaitGroup{}
-		for _, acc := range accList {
-			acc.Key = ""
-			if acc.Limit == 0 {
-				wg.Add(1)
-				fmt.Println("refreshing quota for", acc.Name)
-				go func(_id string) {
-					accountService.UpdateCachedQuota(_id)
-					wg.Done()
-				}(acc.Id.Hex())
-			}
-		}
-		wg.Wait()
-
-		c.JSON(200, accList)
+		c.JSON(200, gin.H{
+			"accounts": accList,
+			"total": accountService.GetAccountCount(),
+			"page": page,
+			"size": size,
+		})
 	})
 
 	r.GET("/:id", func(c *gin.Context) {

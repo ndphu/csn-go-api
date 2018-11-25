@@ -33,6 +33,17 @@ func (s *AccountService) FindAll() ([]*entity.DriveAccount, error) {
 	return list, err
 }
 
+func (s *AccountService) FindAccounts(page int, size int) ([]*entity.DriveAccount, error) {
+	var list []*entity.DriveAccount
+	err := dao.Collection("drive_account").
+		Find(bson.M{}).
+		Select(bson.M{"key": 0}).
+		Skip((page - 1) * size).
+		Limit(size).
+		All(&list)
+	return list, err
+}
+
 func (s *AccountService) FindAccount(id string) (*entity.DriveAccount, error) {
 	var acc entity.DriveAccount
 	err := dao.Collection("drive_account").FindId(bson.ObjectIdHex(id)).One(&acc)
@@ -143,14 +154,13 @@ func GetAccountService() (*AccountService, error) {
 			accountCache: make(map[string]*driveApi.DriveService, 0),
 		}
 		accountService.UpdateAccountCache()
-		ticker := time.NewTicker(5 * time.Second)
+		ticker := time.NewTicker(5 * time.Minute)
 		go func() {
 			for {
 				select {
 				case <-ticker.C:
 					accountService.UpdateAccountCache()
 					accountService.UpdateAllAccountQuota()
-					return
 				}
 			}
 		}()
@@ -173,4 +183,8 @@ func (s *AccountService) UpdateAccountCache() error {
 	}
 	fmt.Println("cached", len(accountService.accountCache), "accounts")
 	return nil
+}
+func (s *AccountService) GetAccountCount() int {
+	n, _ := dao.Collection("drive_account").Count()
+	return n
 }

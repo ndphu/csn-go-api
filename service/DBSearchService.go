@@ -30,7 +30,7 @@ type QuickSearchEntry struct {
 func (*DBSearchService) QuickSearch(query string) ([]QuickSearchEntry, error) {
 	var tracks []entity.Track
 	err := dao.Collection("track").
-		Find(bson.M{"title": bson.RegEx{Pattern: query, Options: "i"},}).
+		Find(bson.M{"title": bson.RegEx{Pattern: query, Options: "i",}, "imported": true}).
 		Select(bson.M{"link": 0, "quality": 0, "duration": 0, "file": 0}).
 		Limit(10).All(&tracks)
 	if err != nil {
@@ -51,7 +51,7 @@ func (*DBSearchService) QuickSearch(query string) ([]QuickSearchEntry, error) {
 func (*DBSearchService) SearchTracks(query string, page int, size int) ([]entity.Track, error) {
 	var tracks []entity.Track
 	err := dao.Collection("track").
-		Find(bson.M{"title": bson.RegEx{Pattern: query, Options: "i"},}).
+		Find(bson.M{"title": bson.RegEx{Pattern: query, Options: "i"}, "imported": true}).
 		Select(bson.M{"link": 0}).
 		Skip((page - 1) * size).
 		Limit(size).
