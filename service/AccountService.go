@@ -154,17 +154,6 @@ func GetAccountService() (*AccountService, error) {
 			accountCache: make(map[string]*driveApi.DriveService, 0),
 		}
 		accountService.UpdateAccountCache()
-		ticker := time.NewTicker(5 * time.Minute)
-		go func() {
-			for {
-				select {
-				case <-ticker.C:
-					accountService.UpdateAccountCache()
-					accountService.UpdateAllAccountQuota()
-				}
-			}
-		}()
-
 	}
 	return accountService, nil
 }

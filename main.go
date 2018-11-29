@@ -5,6 +5,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/ndphu/csn-go-api/controller"
+	"github.com/ndphu/csn-go-api/service"
 )
 
 func main() {
@@ -31,6 +32,13 @@ func main() {
 	controller.AccountController(api.Group("/manage/driveAccount"))
 	controller.TrackController(api.Group("/track"))
 	controller.DownloadController(api.Group("/download"))
+	controller.AlbumController(api.Group("/album"))
+
+	scheduleService, err := service.GetScheduleService()
+	if err != nil {
+		panic(err)
+	}
+	scheduleService.Start()
 
 	fmt.Println("Starting server")
 	r.Run()
