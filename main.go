@@ -33,6 +33,8 @@ func main() {
 	controller.TrackController(api.Group("/track"))
 	controller.DownloadController(api.Group("/download"))
 	controller.AlbumController(api.Group("/album"))
+	controller.RecommendController(api.Group("/recommend"))
+	controller.ContentController(api.Group("/content"))
 
 	scheduleService, err := service.GetScheduleService()
 	if err != nil {

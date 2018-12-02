@@ -59,6 +59,19 @@ func SearchController(api *gin.RouterGroup) {
 		utils.ReturnResponseOrError(c, tracks, err)
 	})
 
+	api.GET("/q/:query/album", func(c *gin.Context) {
+		query, err := base64.StdEncoding.DecodeString(c.Param("query"))
+		fmt.Println("search album", string(query))
+		page := utils.GetIntQuery(c, "page", 1)
+		size := utils.GetIntQuery(c, "size", 25)
+		albums, err := searchService.SearchAlbum(string(query), page, size)
+		if albums == nil {
+			albums = make([]entity.Album, 0)
+		}
+		utils.ReturnResponseOrError(c, albums, err)
+
+	})
+
 	//api.GET("/byArtist/:artistName/tracks", func(c *gin.Context) {
 	//	name, err := base64.StdEncoding.DecodeString(c.Param("artistName"))
 	//	if err != nil {

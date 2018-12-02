@@ -36,6 +36,26 @@ func (s *AlbumService) GetAlbumById(id string) (*entity.Album, error) {
 
 	return &album, err
 }
+func (s *AlbumService) GetRandomAlbum(number int) ([]entity.Album, error) {
+	albums := make([]entity.Album, 0)
+
+	err := dao.Collection("album").Pipe([]bson.M{
+		{
+			"$sample": bson.M{
+				"size": number,
+			},
+		},
+		{
+			"$project": bson.M{
+				"picMIME": 0,
+				"tracks": 0,
+				"picData": 0,
+			},
+		},
+	}).All(&albums)
+
+	return albums, err
+}
 
 var albumService *AlbumService
 

@@ -78,6 +78,18 @@ func (*DBSearchService) SearchTracksByArtist(query string, page int, size int) (
 	return tracks, err
 }
 
+func (*DBSearchService) SearchAlbum(query string, page int, size int) ([]entity.Album, error) {
+	var albums []entity.Album
+	err := dao.Collection("album").
+		Find(bson.M{"title": bson.RegEx{Pattern: query, Options: "i"},}).
+		Select(bson.M{"picData": 0, "picMIME": 0, "tracks": 0}).
+		Skip((page - 1) * size).Limit(size).All(&albums)
+	fmt.Println("search album: found", len(albums), "items")
+	return albums, err
+}
+
+
+
 func condition(query string) []bson.M {
 	return []bson.M{
 		{"title": bson.RegEx{Pattern: ".*" + query + ".*", Options: "i"}},

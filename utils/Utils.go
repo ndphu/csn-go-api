@@ -39,6 +39,14 @@ func GetIntQuery(c *gin.Context, key string, defaultValue int) int {
 	return defaultValue
 }
 
+func GetIntParam(c *gin.Context, key string, defaultValue int) int {
+	value, parseError := strconv.Atoi(c.Param(key))
+	if parseError == nil {
+		return value
+	}
+	return defaultValue
+}
+
 func FailOnError(err error, msg string) {
 	if err != nil {
 		log.Fatalf("%s: %v", msg, err)

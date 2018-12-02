@@ -7,7 +7,7 @@ import (
 
 func AlbumController(api *gin.RouterGroup) {
 	albumService := service.GetAlbumService()
-	api.GET("/:id", func(c *gin.Context) {
+	api.GET("/id/:id", func(c *gin.Context) {
 		album, err := albumService.GetAlbumById(c.Param("id"))
 		if err != nil {
 			ServerError("fail to get album with id "+c.Param("id"), err, c)
