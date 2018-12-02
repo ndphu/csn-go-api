@@ -9,7 +9,7 @@ import (
 func RecommendController(api *gin.RouterGroup) {
 	albumService := service.GetAlbumService()
 	api.GET("/album/:number", func(c *gin.Context) {
-		albums, err := albumService.GetRandomAlbum(utils.GetIntParam(c, "size", 16))
+		albums, err := albumService.GetRandomAlbum(utils.GetIntParam(c, "number", 16))
 		if err != nil {
 			ServerError("fail to get random album", err, c)
 			return

@@ -28,6 +28,8 @@ func (s *AlbumService) GetAlbumById(id string) (*entity.Album, error) {
 		{
 			"$project": bson.M{
 				"tracks":         0,
+				"picData":        0,
+				"picMIME":        0,
 				"trackList.id3":  0,
 				"trackList.link": 0,
 			},
@@ -48,7 +50,7 @@ func (s *AlbumService) GetRandomAlbum(number int) ([]entity.Album, error) {
 		{
 			"$project": bson.M{
 				"picMIME": 0,
-				"tracks": 0,
+				"tracks":  0,
 				"picData": 0,
 			},
 		},
