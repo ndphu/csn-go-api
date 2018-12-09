@@ -28,3 +28,17 @@ func (s*ContentService) GetAlbumCover(id string) ([]byte, string, error) {
 	raw, err := base64.StdEncoding.DecodeString(album.PicData)
 	return raw, album.PicMIME, err
 }
+
+type TrackWithID3 struct {
+	Id bson.ObjectId `json:"_id" bson:"_id"`
+	ID3 entity.ID3 `json:"id3" bson:"id3"`
+}
+func (s *ContentService) GetTrackCover(id string) ([]byte, string, error) {
+	var t TrackWithID3
+	err := dao.Collection("track").FindId(bson.ObjectIdHex(id)).One(&t)
+	if err != nil {
+		return nil, "",err
+	}
+	raw, err := base64.StdEncoding.DecodeString(t.ID3.PictureData)
+	return raw, t.ID3.PictureMIMEType, err
+}

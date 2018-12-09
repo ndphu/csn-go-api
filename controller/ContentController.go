@@ -22,4 +22,20 @@ func ContentController(g * gin.RouterGroup)  {
 
 		c.Data(200, mime, raw)
 	})
+
+	g.GET("/track/:id/cover", func(c *gin.Context) {
+		trackId := c.Param("id")
+		if trackId == "" {
+			BadRequest("missing trackId", nil, c)
+			return
+		}
+
+		raw, mime, err := contentService.GetTrackCover(trackId)
+		if err != nil {
+			ServerError("fail to get track cover", err, c)
+			return
+		}
+
+		c.Data(200, mime, raw)
+	})
 }
