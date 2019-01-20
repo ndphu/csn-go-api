@@ -1,9 +1,11 @@
 package dao
 
 import (
-	"fmt"
+	"crypto/tls"
 	"github.com/globalsign/mgo"
-	"github.com/ndphu/csn-go-api/config"
+	"github.com/ndphu/drive-manager-api/config"
+	"log"
+	"net"
 )
 
 type DAO struct {
@@ -15,38 +17,47 @@ var (
 	dao *DAO = nil
 )
 
-func init()  {
+func init() {
 	conf := config.Get()
-	ses, err := mgo.Dial(conf.MongoDBUri)
+
+	tlsConfig := &tls.Config{}
+	dialInfo, err := mgo.ParseURL(conf.MongoDBUri)
 	if err != nil {
-		fmt.Println("fail to connect to database")
 		panic(err)
-	} else {
-		fmt.Println("database connected!")
+	}
+	dialInfo.DialServer = func(addr *mgo.ServerAddr) (net.Conn, error) {
+		conn, err := tls.Dial("tcp", addr.String(), tlsConfig)
+		return conn, err
+	}
+	session, err := mgo.DialWithInfo(dialInfo)
+	if err != nil {
+		log.Fatal("fail to connect to server")
 	}
 
-	dbName := ""
-
-	if conf.DBName == "" {
-		dbs, err := ses.DatabaseNames()
-		if err != nil {
-			fmt.Println("fail to connect to database")
-			panic(err)
-		} else {
-			if len(dbs) == 0 {
-				fmt.Println("no database found")
-			} else {
-				fmt.Println("found databases " + dbs[0])
-			}
-			dbName = dbs[0]
-		}
+	dbs, err := session.DatabaseNames()
+	if err != nil {
+		log.Println("fail to connect to database")
+		panic(err)
 	} else {
-		dbName = conf.DBName
+		if len(dbs) == 0 {
+			log.Fatal("no database found")
+
+		}
+		found := false
+		for _, dn := range dbs {
+			if dn == conf.DBName {
+				found = true
+				break
+			}
+		}
+		if !found {
+			log.Fatal("database", conf.DBName, "is not found")
+		}
 	}
 
 	dao = &DAO{
-		Session: ses,
-		DBName:  dbName,
+		Session: session,
+		DBName:  conf.DBName,
 	}
 }
 
