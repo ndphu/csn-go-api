@@ -28,19 +28,22 @@ func (s *CrawService) Search(name string, p int) ([]model.Track, error) {
 }
 
 func (s *CrawService) CrawSources(trackUrl string) ([]model.Source, error)  {
-	downloadUrl := strings.Replace(trackUrl, ".html", "_download.html", 1)
-	doc, err := goquery.NewDocument(downloadUrl)
+	//downloadUrl := strings.Replace(trackUrl, ".html", "_download.html", 1)
+	doc, err := goquery.NewDocument(trackUrl)
 	if err != nil {
 		return nil, err
 	}
 	var sources []model.Source
-	doc.Find("#downloadlink2 a").Each(func(__ int, link *goquery.Selection) {
+	doc.Find(".download_status a").Each(func(__ int, link *goquery.Selection) {
+		fmt.Println("hihi")
 		if link.Find("span").Length() > 0 {
 			source := model.Source{
 				Source:  link.AttrOr("href", ""),
 				Quality: link.Find("span").First().Text(),
 			}
-			sources = append(sources, source)
+			if strings.Index(source.Source, "http") >= 0 {
+				sources = append(sources, source)
+			}
 		}
 	})
 	return sources, nil
