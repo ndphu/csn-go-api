@@ -1,18 +1,24 @@
 package main
 
 import (
+	"encoding/base64"
 	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/ndphu/csn-go-api/service"
 	"github.com/ndphu/csn-go-api/model"
-	"github.com/ndphu/csn-go-api/utils"
-	"encoding/base64"
+	"github.com/ndphu/csn-go-api/service"
+	"log"
 )
 
 type CrawSourceRequest struct {
 	URL string `json:"url"`
 }
+
+type SearchInput struct {
+	Query string `json:"query" bson:"type"`
+	Type string `json:"type" bson:"type"`
+}
+
 
 func main() {
 	r := gin.Default()
@@ -30,21 +36,36 @@ func main() {
 	api := r.Group("/api")
 	search := api.Group("/search")
 	{
-		search.GET("/q/:query", func(c *gin.Context) {
-			query, err := base64.StdEncoding.DecodeString(c.Param("query"))
-			page := utils.GetIntQuery(c, "page", 1)
-			tracks, err := crawService.Search(string(query), page)
-			returnTracksOrError(c, tracks, err)
-		})
-		search.GET("/byArtist/:artistName/tracks", func(c *gin.Context) {
-			name, err := base64.StdEncoding.DecodeString(c.Param("artistName"))
+		search.POST("", func(c *gin.Context) {
+			si := SearchInput{}
+			if err := c.BindJSON(&si); err != nil {
+				c.JSON(400, gin.H{"err": err})
+				return
+			}
+
+			log.Printf("searching for [%s] with type=[%s]", si.Query, si.Type)
+			tracks, err := crawService.Search(si.Query, 1)
 			if err != nil {
 				c.JSON(500, gin.H{"err": err})
-			} else {
-				page := utils.GetIntQuery(c, "page", 1)
-				tracks, err := crawService.CrawByArtist(string(name), page)
-				returnTracksOrError(c, tracks, err)
+				return
 			}
+
+			fmt.Printf("Found %d result\n", len(tracks))
+
+			c.JSON(200, gin.H{
+				"request": si,
+				"result": tracks,
+			})
+		})
+		search.GET("/byArtist/:artistName/tracks", func(c *gin.Context) {
+			//name, err := base64.StdEncoding.DecodeString(c.Param("artistName"))
+			//if err != nil {
+			//	c.JSON(500, gin.H{"err": err})
+			//} else {
+			//	//page := utils.GetIntQuery(c, "page", 1)
+			//	//tracks, err := crawService.CrawByArtist(string(name), page)
+			//	//returnTracksOrError(c, tracks, err)
+			//}
 		})
 	}
 
