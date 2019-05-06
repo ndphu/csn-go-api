@@ -41,7 +41,7 @@ func (s *CrawService) Search(name string, p int) ([]*model.Track, error) {
 func (s *CrawService) CrawSources(trackUrl string) ([]model.Source, error)  {
 	downloadUrl := strings.Replace(trackUrl, "beta.", "", 1)
 	log.Println("downloadUrl", downloadUrl)
-	timeout := time.Duration(5 * time.Second)
+	timeout := time.Duration(10 * time.Second)
 	client := http.Client{
 		Timeout: timeout,
 	}
