@@ -8,6 +8,7 @@ import (
 	"github.com/ndphu/csn-go-api/model"
 	"github.com/ndphu/csn-go-api/service"
 	"log"
+	"sync"
 )
 
 type CrawSourceRequest struct {
@@ -44,11 +45,32 @@ func main() {
 			}
 
 			log.Printf("searching for [%s] with type=[%s]", si.Query, si.Type)
-			tracks, err := crawService.Search(si.Query, 1)
-			if err != nil {
-				c.JSON(500, gin.H{"err": err})
-				return
+
+			resultMap := make(map[int][]*model.Track)
+
+			wg := sync.WaitGroup{}
+			wg.Add(5)
+
+			for i := 1; i <=5; i++ {
+				go func(page int) {
+					defer wg.Done()
+					tracks, err := crawService.Search(si.Query, page)
+					if err == nil {
+						resultMap[page] = tracks
+					}
+				}(i)
 			}
+
+			wg.Wait()
+
+			var tracks []*model.Track
+
+			for i := 1; i <=5; i++ {
+				if _track, ok := resultMap[i]; ok {
+					tracks = append(tracks, _track...)
+				}
+			}
+
 
 			fmt.Printf("Found %d result\n", len(tracks))
 

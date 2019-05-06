@@ -1,11 +1,14 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"github.com/ndphu/csn-go-api/model"
 	"github.com/PuerkitoBio/goquery"
+	"regexp"
 	"strings"
 	"github.com/ndphu/csn-go-api/utils"
 	"time"
@@ -19,6 +22,12 @@ var (
 
 type CrawService struct{}
 
+type JSSource struct {
+	File string `json:"file"`
+	Label string `json:"label"`
+}
+
+
 func (s *CrawService) CrawByArtist(a string, p int) ([]*model.Track, error) {
 	raw := fmt.Sprintf(SearchByArtist, url.QueryEscape(a), p)
 	return s.CrawTracksFromUrl(raw)
@@ -30,8 +39,8 @@ func (s *CrawService) Search(name string, p int) ([]*model.Track, error) {
 }
 
 func (s *CrawService) CrawSources(trackUrl string) ([]model.Source, error)  {
-	//downloadUrl := strings.Replace(trackUrl, ".html", "_download.html", 1)
 	downloadUrl := strings.Replace(trackUrl, "beta.", "", 1)
+	log.Println("downloadUrl", downloadUrl)
 	timeout := time.Duration(5 * time.Second)
 	client := http.Client{
 		Timeout: timeout,
@@ -46,20 +55,58 @@ func (s *CrawService) CrawSources(trackUrl string) ([]model.Source, error)  {
 		return nil, err
 	}
 	var sources []model.Source
-	doc.Find("ul.download_status > li > a.download_item").Each(func(__ int, link *goquery.Selection) {
-		if link.Find("span").Length() > 0 {
-			mp3Link := link.AttrOr("href", "")
-			if mp3Link == "" || strings.Index(mp3Link, "javascript") == 0 {
-				return
+
+	re := regexp.MustCompile(`[\s\p{Zs}]{2,}`)
+	doc.Find("script").EachWithBreak(func(i int, s *goquery.Selection) bool {
+
+		flag := false
+
+		for _, line := range strings.Split(s.Text(), "\n") {
+
+			if flag {
+				line = re.ReplaceAllString(line, " ")
+				line = strings.TrimSpace(line)
+				line = "[" + strings.TrimSuffix(line, ", ],") + "]"
+
+				log.Println(line)
+
+				var files []JSSource
+				if err := json.Unmarshal([]byte(line), &files); err == nil {
+					for _, file := range files {
+						sources = append(sources, model.Source{
+							Quality: file.Label,
+							Source: file.File,
+						})
+					}
+				}
+
+				return false
+			} else {
+				if  strings.Contains(line, "sources: [") {
+					flag = true
+				}
 			}
-			source := model.Source{
-				Source:  mp3Link,
-				Quality: link.Find("span").First().Text(),
-			}
-			sources = append(sources, source)
 		}
+		return true
 	})
 	return sources, nil
+}
+
+func getLosslessLink(doc *goquery.Document) (string, error) {
+	res := ""
+	re := regexp.MustCompile(`[\s\p{Zs}]{2,}`)
+	doc.Find("script").Each(func(i int, s *goquery.Selection) {
+		for _, line := range strings.Split(s.Text(), "\n") {
+			if strings.Index(line, "\"label\": \"Lossless\"") >= 0 {
+				line = re.ReplaceAllString(line, " ")
+				line = strings.TrimSpace(line)
+				line = "[" + strings.TrimSuffix(line, ", ],") + "]"
+				log.Println(line)
+			}
+		}
+	})
+	return res, nil
+
 }
 
 func (s *CrawService) CrawTracksFromUrl(raw string) ([]*model.Track, error) {
